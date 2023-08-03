@@ -30,7 +30,6 @@ namespace Core.InjectionBinder.Impl
 
             var injection = Activator.CreateInstance(objectType);
             _injections.Add(new InjectionBindingInfo(interfaceType, injection));
-            OnInjectionAdded(injection);
         }
 
         public void Unbind<T1, T2>()
@@ -69,24 +68,6 @@ namespace Core.InjectionBinder.Impl
             foreach (var injection in _injections)
             {
                 action?.Invoke(injection);
-            }
-        }
-        
-        private void OnInjectionAdded(object instance)
-        {
-            var type = instance.GetType();
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(f => f.IsDefined(typeof(InjectAttribute))).ToList();
-
-            foreach (var propertyInfo in properties)
-            {
-                if(!propertyInfo.IsDefined(typeof(InjectAttribute)))
-                    continue;
-
-                var propertyType = propertyInfo.PropertyType;
-                var injection = GetInjection(propertyType);
-                
-                propertyInfo.SetValue(instance, injection);
             }
         }
     }

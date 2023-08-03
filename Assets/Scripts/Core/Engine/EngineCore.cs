@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Core.Attributes.Inject;
+using UnityEngine;
 
 namespace Core.Engine
 {
@@ -17,6 +18,7 @@ namespace Core.Engine
         private Engine Init()
         {
             CreateInjectionBinder();
+            DontDestroyOnLoad(this);
             _instance = this;
             return this;
         }
@@ -83,7 +85,39 @@ namespace Core.Engine
         
         private void Dispose()
         {
+            foreach (var module in _modules)
+            {
+                var type = module.GetType();
+                
+                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Where(f => f.IsDefined(typeof(OnDestroyAttribute))).ToList();
+                
+                if(methods.Count == 0)
+                    continue;
+                
+                foreach (var methodInfo in methods)
+                {
+                    if(!methodInfo.IsDefined(typeof(OnDestroyAttribute), true))
+                        continue;
+
+                    methodInfo.Invoke(module, null);
+                }
+            }
             _modules = null;
+            
+            InjectionBinder.ForeachBinding(x =>
+            {
+                var type = x.Instance.GetType();
+                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Where(f => f.IsDefined(typeof(OnDestroyAttribute))).ToList();
+                foreach (var methodInfo in methods)
+                {
+                    if(!methodInfo.IsDefined(typeof(OnDestroyAttribute), true))
+                        continue;
+
+                    methodInfo.Invoke(x.Instance, null);
+                }
+            });
         }
 
         private void CreateInjectionBinder()

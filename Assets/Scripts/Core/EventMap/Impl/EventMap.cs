@@ -1,17 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Events;
 using Event = Core.Events.Event;
 
 namespace Core.EventMap.Impl
 {
     public sealed class EventMap : IEventMap
     {
-        private readonly Dictionary<Event, object> _listeners;
+        private readonly Dictionary<EventBase, object> _listeners;
 
         public EventMap()
         {
-            _listeners = new Dictionary<Event, object>();
+            _listeners = new Dictionary<EventBase, object>();
         }
         
         public void Map(Event @event, Action action)
@@ -27,7 +28,7 @@ namespace Core.EventMap.Impl
                 _listeners[@event] = listeners + action;
         }
 
-        public void Map<T1>(Event @event, Action<T1> action)
+        public void Map<T1>(Event<T1> @event, Action<T1> action)
         {
             if (!_listeners.TryGetValue(@event, out var listenersObj))
             {
@@ -40,7 +41,7 @@ namespace Core.EventMap.Impl
                 _listeners[@event] = listeners + action;
         }
 
-        public void Map<T1, T2>(Event @event, Action<T1, T2> action)
+        public void Map<T1, T2>(Event<T1, T2> @event, Action<T1, T2> action)
         {
             if (!_listeners.TryGetValue(@event, out var listenersObj))
             {
@@ -63,7 +64,7 @@ namespace Core.EventMap.Impl
                 _listeners[@event] = listeners - action;
         }
 
-        public void UnMap<T1>(Event @event, Action<T1> action)
+        public void UnMap<T1>(Event<T1> @event, Action<T1> action)
         {
             if (!_listeners.TryGetValue(@event, out var listenersObj))
                 return;
@@ -73,7 +74,7 @@ namespace Core.EventMap.Impl
                 _listeners[@event] = listeners - action;
         }
 
-        public void UnMap<T1, T2>(Event @event, Action<T1, T2> action)
+        public void UnMap<T1, T2>(Event<T1, T2> @event, Action<T1, T2> action)
         {
             if (!_listeners.TryGetValue(@event, out var listenersObj))
                 return;
@@ -92,7 +93,7 @@ namespace Core.EventMap.Impl
             listeners?.Invoke();
         }
 
-        public void Dispatch<T1>(Event @event, T1 param01)
+        public void Dispatch<T1>(Event<T1> @event, T1 param01)
         {
             if (!_listeners.TryGetValue(@event, out var listenersObj))
                 return;
@@ -101,7 +102,7 @@ namespace Core.EventMap.Impl
             listeners?.Invoke(param01);
         }
 
-        public void Dispatch<T1, T2>(Event @event, T1 param01, T2 param02)
+        public void Dispatch<T1, T2>(Event<T1, T2> @event, T1 param01, T2 param02)
         {
             if (!_listeners.TryGetValue(@event, out var listenersObj))
                 return;

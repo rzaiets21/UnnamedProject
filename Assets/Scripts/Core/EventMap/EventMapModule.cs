@@ -1,6 +1,5 @@
 using Core.Attributes.Inject;
 using Core.InjectionBinder;
-using UnityEngine;
 
 namespace Core.EventMap
 {
